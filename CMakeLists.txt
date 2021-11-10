@@ -13,18 +13,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++17")
 
 # include the current directory
 include_directories("${PROJECT_SOURCE_DIR}")
-include_directories("${PROJECT_SOURCE_DIR}/../Boost/Include/")
-include_directories("${PROJECT_SOURCE_DIR}/../beast/include/")
-include_directories("${PROJECT_SOURCE_DIR}/../json-develop/include")
+include_directories("${PROJECT_SOURCE_DIR}/boost-include/")
+include_directories("${PROJECT_SOURCE_DIR}/beast-include/")
+include_directories("${PROJECT_SOURCE_DIR}/json-single-include/")
 
 # set the sources
 file(GLOB ROOT_HEADERS "*.h")
 file(GLOB ROOT_SOURCES "*.cpp")
-
-list(REMOVE_ITEM ROOT_SOURCES "${PROJECT_SOURCE_DIR}/RESTRequest.cpp")
-list(REMOVE_ITEM ROOT_SOURCES "${PROJECT_SOURCE_DIR}/RESTClient.cpp")
-list(REMOVE_ITEM ROOT_HEADERS "${PROJECT_SOURCE_DIR}/RESTRequest.h")
-list(REMOVE_ITEM ROOT_HEADERS "${PROJECT_SOURCE_DIR}/RESTClient.h")
 
 #source_group("Header Files\\${ROOT_HEADERS})
 #source_group("Source Files\\${ROOT_SOURCES})
