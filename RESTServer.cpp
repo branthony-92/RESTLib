@@ -31,12 +31,12 @@ bool Server::startServer(std::string address, unsigned short port, SessionPtr pS
 {
 	reset();
 	m_pIOContext = std::make_shared<net::io_context>(m_threadCount);
+	m_pSSLContext = std::make_shared<ssl::context>(ssl::context_base::tlsv12_server);
 
 	std::string schema = "http";
 	// server-owner defined SSL certificate initialization
 	if (pSessionPrototype->m_useSSLTLS)
 	{
-		m_pSSLContext = std::make_shared<ssl::context>(ssl::context_base::tlsv12_server);
 		if (!sslInitHandler(*m_pSSLContext)) return false;
 		schema = "https";		
 	}

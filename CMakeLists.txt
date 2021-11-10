@@ -12,23 +12,20 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++17")
 # add_compile_options(/W4 /bigobj)
 
 # include the current directory
+include_directories("/usr/include/")
+include_directories("/usr/include/json/single_include")
+include_directories("/usr/include/x86_64-linux-gnu/")
 include_directories("${PROJECT_SOURCE_DIR}")
-include_directories("${PROJECT_SOURCE_DIR}/../Boost/Include/")
-include_directories("${PROJECT_SOURCE_DIR}/../beast/include/")
-include_directories("${PROJECT_SOURCE_DIR}/../json-develop/include")
 
 # set the sources
 file(GLOB ROOT_HEADERS "*.h")
 file(GLOB ROOT_SOURCES "*.cpp")
 
-list(REMOVE_ITEM ROOT_SOURCES "${PROJECT_SOURCE_DIR}/RESTRequest.cpp")
-list(REMOVE_ITEM ROOT_SOURCES "${PROJECT_SOURCE_DIR}/RESTClient.cpp")
-list(REMOVE_ITEM ROOT_HEADERS "${PROJECT_SOURCE_DIR}/RESTRequest.h")
-list(REMOVE_ITEM ROOT_HEADERS "${PROJECT_SOURCE_DIR}/RESTClient.h")
-
-#source_group("Header Files\\${ROOT_HEADERS})
-#source_group("Source Files\\${ROOT_SOURCES})
+link_directories("/lib/")
+link_directories("/lib/x86_64-linux-gnu/")
+link_directories("/usr/lib/")
 link_directories("/usr/lib/x86_64-linux-gnu/")
+link_directories("/usr/local/lib/")
 
 set(SOURCES ${ROOT_HEADERS} ${ROOT_SOURCES})
 add_library(restlib SHARED ${SOURCES})
