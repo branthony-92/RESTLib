@@ -183,26 +183,32 @@ RequestCallback* RESTServerContext::retrieveCallback_HEAD(std::string name)
 }
 
 // server callback management
-void RESTServerContext::registerServerEventCallback(ServerEnventID callbackID, EventCallback callback)
+void RESTServerContext::registerServerEventCallback(ServerEventCallbackID callbackID, EventCallback callback)
 {
 	m_serverEventCallbacks.insert_or_assign(callbackID, callback);
 }
 
 void RESTServerContext::onServerStart()
 {
-	auto callback = m_serverEventCallbacks.find(ServerEnventCallbackID::onServerStart);
+	auto callback = m_serverEventCallbacks.find(ServerEventCallbackID::onServerStart);
 	if (callback == m_serverEventCallbacks.end()) return;
-	(Callback->second)();
+	(callback->second)();
 }
 void RESTServerContext::onServerReset()
 {
-	auto callback = m_serverEventCallbacks.find(ServerEnventCallbackID::onServerReset);
+	auto callback = m_serverEventCallbacks.find(ServerEventCallbackID::onServerReset);
 	if (callback == m_serverEventCallbacks.end()) return;
-	(Callback->second)();
+	(callback->second)();
 }   
 void RESTServerContext::onServerShutdown()
 {
-	auto callback = m_serverEventCallbacks.find(ServerEnventCallbackID::onServerStop);
+	auto callback = m_serverEventCallbacks.find(ServerEventCallbackID::onServerStop);
 	if (callback == m_serverEventCallbacks.end()) return;
-	(Callback->second)();
+	(callback->second)();
+}
+
+
+std::shared_ptr<RESTServerContext> RESTServerContext::make_context(std::string name)
+{
+	return std::make_shared<Context>(name);
 }

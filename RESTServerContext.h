@@ -7,12 +7,12 @@
 #include "RESTEndpoint.h"
 #include <atomic>
 
-enum class ServerEnventCallbackID
+enum class ServerEventCallbackID
 {
 	onServerStart,
 	onServerReset,
 	onServerStop,
-}
+};
 
 class RESTServerContext
 {
@@ -34,17 +34,18 @@ protected:
 	CallbackMap m_HTTPRequestCallbacks_HEAD;
 	
 	using EventCallback = std::function<void()>;
-	using EventCallbackMap = std::map<std::string, EventCallback>;
+	using EventCallbackMap = std::map<ServerEventCallbackID, EventCallback>;
 
 	EventCallbackMap m_serverEventCallbacks;
 public:
 
 	RESTServerContext(std::string name);
-
 	virtual ~RESTServerContext() {}
 
+	static std::shared_ptr<RESTServerContext> make_context(std::string name = "Server_Context");
+
 	// server callback management
-	void registerServerEventCallback(ServerEnventID callbackID, EventCallback callback);
+	void registerServerEventCallback(ServerEventCallbackID callbackID, EventCallback callback);
 	
 	void onServerStart();
 	void onServerReset();    
@@ -87,6 +88,8 @@ public:
 
 	unsigned int getNextransactionID();
 };
-typedef std::shared_ptr<RESTServerContext> TRESTCtxPtr;
+typedef RESTServerContext Context;
+typedef std::shared_ptr<Context> TRESTCtxPtr;
+
 
 #endif // !RESTENDPOINTCONTEXT_H
