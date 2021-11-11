@@ -14,22 +14,22 @@
 
 typedef std::lock_guard<std::mutex> TLock;
 
-/*
-	This is the actual server class that will create and own the listener
-*/
-class Server
+class REST_Server
 {
 public:
+
 	using SSLCtxInitHandler = std::function<bool(boost::asio::ssl::context&)>;
 	using TEndpointMap = std::map<std::string, ReqHandlerPtr>;
 	using TEndpointMapData = std::pair<std::string, ReqHandlerPtr>;
 
-	Server(unsigned int threads = 1);
-	virtual ~Server();
+	REST_Server(unsigned int threads = 1);
+	virtual ~REST_Server();
 
-	virtual bool startServer(std::string address, unsigned short port, SessionPtr pSessionPrototype, const SSLCtxInitHandler& sslInitHandler);
+	static std::shared_ptr<REST_Server> make_server(unsigned int threadCount, std::string address, unsigned short port, RESTCtxList contexts);
+	static std::shared_ptr<REST_Server> make_server(unsigned int threadCount, std::string address, unsigned short port, RESTCtxList contexts, SSLCtxInitHandler fHandler);
+
 	virtual bool reset();
-	void shutdown();
+	virtual void shutdown();
 
 	unsigned int getServerThreadCount()const { return m_threadCount; }
 	void setServerThreadCount(unsigned int count) { m_threadCount = count; }
@@ -42,11 +42,13 @@ public:
 	RESTCtxList getContexts() const { return m_serverContexts; }
 
 protected:
-	ListenerPtr  m_pListener;
+	virtual bool startServer_HTTP(std::string address, unsigned short port, RESTCtxList contexts);
+	virtual bool startServer_HTTPS(std::string address, unsigned short port, RESTCtxList contexts, SSLCtxInitHandler fHandler);
 
+	ListenerPtr  m_pListener;
+	SSLCtxPtr 	 m_pSSLContext;
 	RESTCtxList  m_serverContexts;
 	IOCtxPtr     m_pIOContext;
-	SSLCtxPtr    m_pSSLContext;
 	unsigned int m_threadCount;
 	std::vector<std::thread> m_ioCtxThreads;
 	mutable std::mutex m_mutex;
@@ -54,6 +56,8 @@ protected:
 	std::string m_lastServerError;
 	ServerInfoPtr m_pInfo;
 };
-typedef std::shared_ptr<Server> ServerPtr;
+typedef REST_Server Server;
+typedef std::shared_ptr<Server> RESTServerPtr;
+
 
 #endif // !RESTSERVER_H
