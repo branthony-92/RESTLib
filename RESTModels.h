@@ -27,6 +27,13 @@ namespace jsonUtils {
 
 class JSONInfoBody {
 public:
+	enum class RequestTypeTag
+	{
+		ResourceRequest,
+		APIRequest,
+		UnknownRequest,
+	};
+
 
 	enum class BodyType
 	{
@@ -58,6 +65,11 @@ public:
 	static std::shared_ptr<JSONInfoBody> createBody(BodyType ID);
 	static std::shared_ptr<JSONInfoBody> createBody(std::string name);
 
+	RequestTypeTag getReqTypeTag() const { return m_reqTag; }
+	void setReqTypeTag(RequestTypeTag tag) { m_reqTag = tag; }
+
+private:
+	RequestTypeTag m_reqTag;
 };
 typedef std::shared_ptr<JSONInfoBody> BodyInfoPtr;
 

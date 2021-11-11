@@ -6,6 +6,8 @@
 class ResponseInfoBody : public JSONInfoBody
 {
 public:
+
+
 	ResponseInfoBody();
 	virtual ~ResponseInfoBody() {}
 
@@ -23,9 +25,11 @@ public:
 		m_bodies.clear();
 	}
 
+
 private:
 	unsigned int m_transactionID;
 	BodyMap      m_bodies;
+
 };
 typedef std::shared_ptr<ResponseInfoBody> ReponseBodyPtr;
 #endif // !MDLRESPONSEINFO_H

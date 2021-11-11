@@ -15,12 +15,6 @@ REST_Server::REST_Server(unsigned int threads)
 	// make sure we have at least 1 thread
 	m_threadCount = std::max(1u, m_threadCount);
 	m_ioCtxThreads.reserve(m_threadCount);
-
-	auto pInfoCtx = std::make_shared<ServerInfoContext>();
-	pInfoCtx->setServerInfo(m_pInfo);
-
-	registerContext(pInfoCtx);
-	
 	m_pIOContext = std::make_shared<net::io_context>(m_threadCount);
 	m_pSSLContext = std::make_shared<ssl::context>(ssl::context_base::tlsv12_server);
 }
@@ -69,7 +63,7 @@ bool REST_Server::reset()
 	}
 }
 
-void REST_Server::registerContext(RESTCtxPtr pContext)
+void REST_Server::registerContext(TRESTCtxPtr pContext)
 {
 	m_serverContexts.push_back(pContext);
 	auto &endpoints = m_pInfo->getEndpointNames();
@@ -85,7 +79,7 @@ void REST_Server::shutdown()
 	m_serverContexts.clear();
 }
 
-void REST_Server::unregisterContext(RESTCtxPtr pContext)
+void REST_Server::unregisterContext(TRESTCtxPtr pContext)
 {
 	for (auto ctxIter = m_serverContexts.begin(); ctxIter != m_serverContexts.end(); ctxIter++)
 	{

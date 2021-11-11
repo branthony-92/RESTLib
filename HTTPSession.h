@@ -3,6 +3,14 @@
 
 #include "Session.h"
 
+namespace {
+
+    void logtrace(std::string fn)
+    {
+        std::cout << fn << " Entered\n";
+    }
+
+}
 class GenericSessionHTTP : public SessionBase, public std::enable_shared_from_this<GenericSessionHTTP>
 {
     std::shared_ptr<beast::tcp_stream>  m_pHTTP_Stream;
@@ -80,11 +88,12 @@ void GenericSessionHTTP::handleRequest(http::request<Body, http::basic_fields<Al
         http::write(*m_pHTTP_Stream, res);
     };
 
+    logtrace("GenericSessionHTTP::handleRequest");
+    
     std::shared_ptr<JSONInfoBody> pResponse = nullptr;
     try
     {
         beast::string_view target = req.target();
-        ReqHandlerPtr pHandler = nullptr;
         // find the endpoint
 
         beast::string_view methodStr = req.method_string();
@@ -93,61 +102,49 @@ void GenericSessionHTTP::handleRequest(http::request<Body, http::basic_fields<Al
         auto epString = extractEndpoint(target);
 
         // retrieve the JSON body from the request body if there is one
-        ParsedBody body = extractBody(req);
+        ParameterMap body(extractBody(req));
 
         // extract the queries
         ParameterMap queries(extractQueries(target));
 
         // find the method and handle the request
         http::verb method = req.method();
-
-        RESTCtxPtr pContext = nullptr;
-
-        if (epString.find("/api/") != std::string::npos)
-        {
-            auto handlerInfo = findHandler(epString);
-            if (handlerInfo.pCtx && handlerInfo.pHanlder)
-            {
-                pContext = handlerInfo.pCtx;
-                pHandler = handlerInfo.pHanlder;
-            }
-        }
-        else
-        {
-            pHandler = std::make_shared<ResourceRequestHandler>();
-
-        }
-        if (!pHandler) throw std::runtime_error("Failed to retrieve request handler");
-
-        pHandler->resetResponseBody();
-
-        auto handleReq = [&](RESTCtxPtr pCtx) -> std::shared_ptr<JSONInfoBody> {
+        RequestData reqData = {epString, queries, body};
+        auto findCallback = [&method](TRESTCtxPtr pCtx, std::string& callbackID) -> RequestCallback* {
+            if (!pCtx) return nullptr;
             switch (method)
             {
                 case boost::beast::http::verb::delete_:
-                    return pHandler->handleRequest_Delete(epString, queries, ParameterMap(body), pCtx);
+                    return pCtx->retrieveCallback_DELETE(callbackID);
                 case boost::beast::http::verb::get:
-                    return pHandler->handleRequest_Get(epString, queries, ParameterMap(body), pCtx);
+                    return pCtx->retrieveCallback_GET(callbackID);
                 case boost::beast::http::verb::head:
-                    return pHandler->handleRequest_Head(epString, queries, ParameterMap(body), pCtx);
+                    return pCtx->retrieveCallback_HEAD(callbackID);
                 case boost::beast::http::verb::post:
-                    return pHandler->handleRequest_Post(epString, queries, ParameterMap(body), pCtx);
+                    return pCtx->retrieveCallback_POST(callbackID);
                 case boost::beast::http::verb::put:
-                    return pHandler->handleRequest_Put(epString, queries, ParameterMap(body), pCtx);
+                    return pCtx->retrieveCallback_PUT(callbackID);
                 default:
                     break;
             }
             return nullptr;
         };
 
-        switch (pHandler->getType())
+        for (auto& pCtx : m_serverContexts)
         {
-        case HTTPRequestHandler::RequestType::APIRequest:
+            auto callback = findCallback(pCtx, epString);
+            if (callback)
+            {
+                pResponse = (*callback)(reqData);
+                break;
+            }
+        }
+
+        if (!pResponse) throw std::runtime_error("Failed to retrieve response");
+        switch (pResponse->getReqTypeTag())
         {
-            pResponse = handleReq(pContext);
-
-            if (!pResponse) throw std::runtime_error("Failed to retrieve response");
-
+        case JSONInfoBody::RequestTypeTag::APIRequest:
+        {
             // dump the json body
             auto pResp = std::make_shared<http::response<http::string_body>>(http::status::ok, req.version());
             pResp->set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -167,37 +164,24 @@ void GenericSessionHTTP::handleRequest(http::request<Body, http::basic_fields<Al
             );
             break;
         }
-        case HTTPRequestHandler::RequestType::ResourceRequest:
+        case JSONInfoBody::RequestTypeTag::ResourceRequest:
         {
             std::string path = "";
+            auto pResourceBody = std::dynamic_pointer_cast<ResourceInfoBody>(pResponse);
+            if (!pResourceBody) throw std::runtime_error("Could not retrieve resource message body");
 
-            // fetch the desired resource
-            // try all of our owned contexts
-            for (auto& pCtx : m_serverContexts)
-            {
-                pResponse = handleReq(pCtx);
-      
-                auto pResourceBody = std::dynamic_pointer_cast<ResourceInfoBody>(pResponse);
-                if (!pResourceBody) continue;
-
-                // use the first path we find from the request
-                if (!pResourceBody->getPath().empty())
-                {
-                    path = pResourceBody->getPath();
-                    break;
-                }
-            }
-            beast::error_code ec;
-            http::file_body::value_type body;
-
+            path = pResourceBody->getPath();
+            
             if (path.empty())
             {
                 not_found(path);
                 return;
             }
 
-            std::cout << "Resource requested: " << path << "\n";
+            beast::error_code ec;
+            http::file_body::value_type body;
 
+            std::cout << "Resource requested: " << path << "\n";
             body.open(path.c_str(), beast::file_mode::scan, ec);
             if (ec)
             {
@@ -225,7 +209,7 @@ void GenericSessionHTTP::handleRequest(http::request<Body, http::basic_fields<Al
                     shared_from_this(),
                     pResp->need_eof()));
         }
-        case HTTPRequestHandler::RequestType::UnknownRequest:
+        case JSONInfoBody::RequestTypeTag::UnknownRequest:
         default:
             server_error("Unknown handler type");
             break;

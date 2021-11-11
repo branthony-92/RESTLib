@@ -4,11 +4,8 @@
 #include "MdlServerInfo.h"
 #include "MdlConnectionInfo.h"
 #include "RESTConnection.h"
-
+#include "RESTEndpoint.h"
 #include <atomic>
-
-class HTTPRequestHandler;
-
 
 class RESTServerContext
 {
@@ -24,7 +21,12 @@ protected:
 
 	unsigned int m_transactionID;
 
-	std::map<std::string, std::shared_ptr<HTTPRequestHandler>> m_requestHandlers;
+	CallbackMap m_callbacks_GET;
+	CallbackMap m_callbacks_PUT;
+	CallbackMap m_callbacks_POST;
+	CallbackMap m_callbacks_UPDATE;
+	CallbackMap m_callbacks_DELETE;
+	CallbackMap m_callbacks_HEAD;
 
 public:
 	RESTServerContext(std::string name);
@@ -32,9 +34,20 @@ public:
 	virtual ~RESTServerContext() {}
 
 	// endpoint management
-	void registerHandler(std::string path, std::shared_ptr<HTTPRequestHandler> pEndpoint);
-	std::shared_ptr<HTTPRequestHandler> retrieveHandler(std::string name);
+	void registerCallback_GET(std::string path,    RequestCallback callback);
+	void registerCallback_PUT(std::string path,    RequestCallback callback);
+	void registerCallback_POST(std::string path,   RequestCallback callback);
+	void registerCallback_UPDATE(std::string path, RequestCallback callback);
+	void registerCallback_DELETE(std::string path, RequestCallback callback);
+	void registerCallback_HEAD(std::string path,   RequestCallback callback);
 
+	RequestCallback* retrieveCallback_GET(std::string name);  
+	RequestCallback* retrieveCallback_PUT(std::string name);    
+	RequestCallback* retrieveCallback_POST(std::string name);   
+	RequestCallback* retrieveCallback_UPDATE(std::string name);  
+	RequestCallback* retrieveCallback_DELETE(std::string name);  
+	RequestCallback* retrieveCallback_HEAD(std::string name);   
+	
 	bool hasHandlers() const;
 
 	bool addHandlerName(std::string name);

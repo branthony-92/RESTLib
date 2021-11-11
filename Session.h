@@ -9,8 +9,12 @@
 #include <boost/asio/strand.hpp>
 #include <boost/config.hpp>
 
+#include <list>
+
 #include "MdlResponseInfo.h"
 #include "RESTEndpoint.h"
+
+#include "RESTServerContext.h"
 
 namespace beast = boost::beast;             // from <boost/beast.hpp>
 namespace http = beast::http;               // from <boost/beast/http.hpp>
@@ -18,16 +22,10 @@ namespace net = boost::asio;                // from <boost/asio.hpp>
 namespace ssl = boost::asio::ssl;           // from <boost/asio/ssl.hpp>
 using     tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-class RESTServerContext;
-typedef std::shared_ptr<RESTServerContext>  RESTCtxPtr;
 typedef std::list<TRESTCtxPtr>              RESTCtxList;
 typedef std::shared_ptr<ssl::context>       SSLCtxPtr;
 typedef std::shared_ptr<net::io_context>    IOCtxPtr;
 
-typedef struct {
-    ReqHandlerPtr pHanlder;
-    RESTCtxPtr    pCtx;
-} HandlerContextData;
 
 /*  The class Session Handles an HTTP server connection
 *
@@ -66,7 +64,6 @@ public:
     static std::map<std::string, std::string> extractQueries(beast::string_view target);
     static std::string extractEndpoint(beast::string_view target);
 
-    HandlerContextData findHandler(std::string endpoint);
 
 
 

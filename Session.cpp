@@ -152,20 +152,3 @@ std::string SessionBase::extractEndpoint(beast::string_view target)
     }
     return "";
 }
-
-HandlerContextData SessionBase::findHandler(std::string endpoint)
-{
-    HandlerContextData handlerInfo = { nullptr, nullptr };
-    // scan our context list for handlers
-    for (auto& pContext : m_serverContexts)
-    {
-        auto pHandler = pContext->retrieveHandler(endpoint);
-        if (pHandler)
-        {
-            handlerInfo.pCtx     = pContext;
-            handlerInfo.pHanlder = pHandler;
-            return handlerInfo;
-        }
-    }
-    return handlerInfo;
-}

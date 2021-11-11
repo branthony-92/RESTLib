@@ -6,7 +6,6 @@
 #include "MdlResponseInfo.h"
 #include "MdlErrorInfo.h"
 
-#include "RESTEndpoint.h"
 #include "RESTServerContext.h"
 #include "Listener.h"
 
@@ -19,8 +18,6 @@ class REST_Server
 public:
 
 	using SSLCtxInitHandler = std::function<bool(boost::asio::ssl::context&)>;
-	using TEndpointMap = std::map<std::string, ReqHandlerPtr>;
-	using TEndpointMapData = std::pair<std::string, ReqHandlerPtr>;
 
 	REST_Server(unsigned int threads = 1);
 	virtual ~REST_Server();
@@ -37,8 +34,8 @@ public:
 	std::string getLastServerError() const   { return m_lastServerError; }
 	void getLastServerError(std::string msg) { m_lastServerError = msg;  }
 
-	void registerContext(RESTCtxPtr pContext);
-	void unregisterContext(RESTCtxPtr pContext);
+	void registerContext(TRESTCtxPtr pContext);
+	void unregisterContext(TRESTCtxPtr pContext);
 	RESTCtxList getContexts() const { return m_serverContexts; }
 
 protected:

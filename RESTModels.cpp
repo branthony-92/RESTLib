@@ -75,11 +75,13 @@ bool jsonUtils::saveFile(const std::string path, JSON j)
 
 JSONInfoBody::JSONInfoBody(BodyType ID)
 	: c_name(c_bodyIDToString.at(ID))
+	, m_reqTag(RequestTypeTag::UnknownRequest)
 {
 }
 
 JSONInfoBody::JSONInfoBody(std::string name)
 	: c_name(name)
+	, m_reqTag(RequestTypeTag::UnknownRequest)
 {
 }
 

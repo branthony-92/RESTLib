@@ -8,6 +8,7 @@ void GenericSessionHTTP::run()
     // on the I/O objects in this session. Although not strictly necessary
     // for single-threaded contexts, this example code is written to be
     // thread-safe by default.
+    logtrace("GenericSessionHTTP::run");
     m_closed = false;
     net::dispatch(
         m_pHTTP_Stream->get_executor(),
@@ -21,7 +22,7 @@ void GenericSessionHTTP::doRead()
     // Make the request empty before reading,
    // otherwise the operation behavior is undefined.
     m_request = {};
-
+    logtrace("GenericSessionHTTP::doRead");
     // Set the timeout.
     beast::get_lowest_layer(*m_pHTTP_Stream).expires_after(std::chrono::seconds(30));
 
@@ -35,7 +36,7 @@ void GenericSessionHTTP::doRead()
 void GenericSessionHTTP::onRead(beast::error_code ec, std::size_t bytesTransferred)
 {
     boost::ignore_unused(bytesTransferred);
-
+    logtrace("GenericSessionHTTP::onRead");
     // This means they closed the connection
     if (ec == http::error::end_of_stream)
         return doClose();
@@ -51,7 +52,7 @@ void GenericSessionHTTP::onWrite(bool close, beast::error_code ec, std::size_t b
 {
     boost::ignore_unused(bytesTransferred);
     return doClose();
-
+    logtrace("GenericSessionHTTP::onWrite");
     if (ec)
         return;
 
@@ -75,7 +76,7 @@ void GenericSessionHTTP::doClose()
 {
     // Set the timeout.
     beast::get_lowest_layer(*m_pHTTP_Stream).expires_after(std::chrono::seconds(30));
-
+    logtrace("GenericSessionHTTP::doClose");
     beast::error_code ec;
 
     // Perform the SSL shutdown
