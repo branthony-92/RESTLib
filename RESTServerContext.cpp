@@ -9,12 +9,12 @@ RESTServerContext::RESTServerContext(std::string name)
 	, m_stopFlag(false)
 	, m_resetFlag(false)
 	, m_pHandlerInfo(nullptr)
-	, m_callbacks_GET()
-	, m_callbacks_PUT()
-	, m_callbacks_POST()
-	, m_callbacks_UPDATE()
-	, m_callbacks_DELETE()
-	, m_callbacks_HEAD()
+	, m_HTTPRequestCallbacks_GET()
+	, m_HTTPRequestCallbacks_PUT()
+	, m_HTTPRequestCallbacks_POST()
+	, m_HTTPRequestCallbacks_DELETE()
+	, m_HTTPRequestCallbacks_HEAD()
+	, m_serverEventCallbacks()
 	, m_pConnectionMgr(std::make_unique<ConnectionManager>())
 {
 	//replace spaces with underscores for the json body name
@@ -127,68 +127,82 @@ bool RESTServerContext::addHandlerName(std::string name)
 
 void RESTServerContext::registerCallback_GET(std::string path, RequestCallback callback)
 {
-	m_callbacks_GET.insert_or_assign(path, callback);
+	m_HTTPRequestCallbacks_GET.insert_or_assign(path, callback);
 	addHandlerName(path);
 }
 void RESTServerContext::registerCallback_PUT(std::string path, RequestCallback callback)
 {
-	m_callbacks_PUT.insert_or_assign(path, callback);
+	m_HTTPRequestCallbacks_PUT.insert_or_assign(path, callback);
 	addHandlerName(path);
 }
 void RESTServerContext::registerCallback_POST(std::string path, RequestCallback callback)
 {
-	m_callbacks_POST.insert_or_assign(path, callback);
-	addHandlerName(path);
-}
-void RESTServerContext::registerCallback_UPDATE(std::string path, RequestCallback callback)
-{
-	m_callbacks_UPDATE.insert_or_assign(path, callback);
+	m_HTTPRequestCallbacks_POST.insert_or_assign(path, callback);
 	addHandlerName(path);
 }
 void RESTServerContext::registerCallback_DELETE(std::string path, RequestCallback callback)
 {
-	m_callbacks_DELETE.insert_or_assign(path, callback);
+	m_HTTPRequestCallbacks_DELETE.insert_or_assign(path, callback);
 	addHandlerName(path);
 }
 void RESTServerContext::registerCallback_HEAD(std::string path, RequestCallback callback)
 {
-	m_callbacks_HEAD.insert_or_assign(path, callback);
+	m_HTTPRequestCallbacks_HEAD.insert_or_assign(path, callback);
 	addHandlerName(path);
 }
 
 RequestCallback* RESTServerContext::retrieveCallback_GET(std::string name)
 {
-	auto callback = m_callbacks_GET.find(name);
-	if (callback == m_callbacks_GET.end()) return nullptr;
+	auto callback = m_HTTPRequestCallbacks_GET.find(name);
+	if (callback == m_HTTPRequestCallbacks_GET.end()) return nullptr;
 	return &callback->second;
 }  
 RequestCallback* RESTServerContext::retrieveCallback_PUT(std::string name)
 {
-	auto callback = m_callbacks_PUT.find(name);
-	if (callback == m_callbacks_PUT.end()) return nullptr;
+	auto callback = m_HTTPRequestCallbacks_PUT.find(name);
+	if (callback == m_HTTPRequestCallbacks_PUT.end()) return nullptr;
 	return &callback->second;
 }    
 RequestCallback* RESTServerContext::retrieveCallback_POST(std::string name)
 {
-	auto callback = m_callbacks_POST.find(name);
-	if (callback == m_callbacks_POST.end()) return nullptr;
+	auto callback = m_HTTPRequestCallbacks_POST.find(name);
+	if (callback == m_HTTPRequestCallbacks_POST.end()) return nullptr;
 	return &callback->second;
 }   
-RequestCallback* RESTServerContext::retrieveCallback_UPDATE(std::string name)
-{
-	auto callback = m_callbacks_UPDATE.find(name);
-	if (callback == m_callbacks_UPDATE.end()) return nullptr;
-	return &callback->second;
-}  
 RequestCallback* RESTServerContext::retrieveCallback_DELETE(std::string name)
 {
-	auto callback = m_callbacks_DELETE.find(name);
-	if (callback == m_callbacks_DELETE.end()) return nullptr;
+	auto callback = m_HTTPRequestCallbacks_DELETE.find(name);
+	if (callback == m_HTTPRequestCallbacks_DELETE.end()) return nullptr;
 	return &callback->second;
 }  
 RequestCallback* RESTServerContext::retrieveCallback_HEAD(std::string name)
 {
-	auto callback = m_callbacks_HEAD.find(name);
-	if (callback == m_callbacks_HEAD.end()) return nullptr;
+	auto callback = m_HTTPRequestCallbacks_HEAD.find(name);
+	if (callback == m_HTTPRequestCallbacks_HEAD.end()) return nullptr;
 	return &callback->second;
+}
+
+// server callback management
+void RESTServerContext::registerServerEventCallback(ServerEnventID callbackID, EventCallback callback)
+{
+	m_serverEventCallbacks.insert_or_assign(callbackID, callback);
+}
+
+void RESTServerContext::onServerStart()
+{
+	auto callback = m_serverEventCallbacks.find(ServerEnventCallbackID::onServerStart);
+	if (callback == m_serverEventCallbacks.end()) return;
+	(Callback->second)();
+}
+void RESTServerContext::onServerReset()
+{
+	auto callback = m_serverEventCallbacks.find(ServerEnventCallbackID::onServerReset);
+	if (callback == m_serverEventCallbacks.end()) return;
+	(Callback->second)();
+}   
+void RESTServerContext::onServerShutdown()
+{
+	auto callback = m_serverEventCallbacks.find(ServerEnventCallbackID::onServerStop);
+	if (callback == m_serverEventCallbacks.end()) return;
+	(Callback->second)();
 }
