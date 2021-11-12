@@ -114,10 +114,19 @@ bool REST_Server::startServer_HTTP(std::string address, unsigned short port, RES
 		registerContext(pContext);
 	}
 
+	boost::system::error_code ec;
+	auto ipAddr = boost::asio::ip::address::from_string( address, ec );
+	if ( ec )
+	{
+		std::cerr << "passed address is invalid: " << ec.message() << std::endl;
+		ipAddr = boost::asio::ip::address::from_string("127.0.0.1");
+		address = "127.0.0.1";
+	}
+
 	m_pListener = std::make_shared<Listener>(
 		*m_pIOContext,
 		*m_pSSLContext,
-		tcp::endpoint{net::ip::make_address(address), port},
+		tcp::endpoint{ipAddr, port},
 		pSessionPrototype);
 
 	m_pListener->run();
@@ -165,10 +174,19 @@ bool REST_Server::startServer_HTTPS(std::string address, unsigned short port, RE
 			throw std::runtime_error("Failed to start server");
 	}
 
+	boost::system::error_code ec;
+	auto ipAddr = boost::asio::ip::address::from_string( address, ec );
+	if ( ec )
+	{
+		std::cerr << "passed address is invalid: " << ec.message() << std::endl;
+		ipAddr = boost::asio::ip::address::from_string("127.0.0.1");
+		address = "127.0.0.1";
+	}
+
 	m_pListener = std::make_shared<Listener>(
 		*m_pIOContext,
 		*m_pSSLContext,
-		tcp::endpoint{net::ip::make_address(address), port},
+		tcp::endpoint{ipAddr, port},
 		pSessionPrototype);
 
 	m_pListener->run();

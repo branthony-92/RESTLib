@@ -32,4 +32,5 @@ add_library(restlib SHARED ${SOURCES})
 
 target_link_libraries(restlib -lboost_thread -lboost_system -lcrypto -lz -lpthread -lssl)
 
-install(TARGETS restlib LIBRARY DESTINATION /usr/local/lib)
+install(TARGETS restlib LIBRARY DESTINATION /usr/local/lib/)
+install(FILES ${ROOT_HEADERS} ${ROOT_SOURCES} DESTINATION /usr/local/include/restlib/)
