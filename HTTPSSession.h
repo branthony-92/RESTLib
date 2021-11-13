@@ -99,15 +99,15 @@ void GenericSessionHTTPS::handleRequest(http::request<Body, http::basic_fields<A
         auto epString = extractEndpoint(target);
 
        // retrieve the JSON body from the request body if there is one
-        ParameterMap body(extractBody(req));
+        auto body(extractBody(req));
 
         // extract the queries
-        ParameterMap queries(extractQueries(target));
+        auto queries(extractQueries(target));
 
         // find the method and handle the request
         http::verb method = req.method();
         RequestData reqData = {epString, queries, body};
-        auto findCallback = [&method](TRESTCtxPtr pCtx, std::string& callbackID) -> RequestCallback* {
+        auto findCallback = [method](TRESTCtxPtr pCtx, std::string& callbackID) -> RequestCallback* {
             if (!pCtx) return nullptr;
             switch (method)
             {

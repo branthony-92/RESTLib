@@ -64,7 +64,7 @@ void Listener::on_accept(beast::error_code ec, tcp::socket socket)
     }
     else
     {
-        handleClosedSessions();
+        //handleClosedSessions();
 
         // Create the session and run it
         auto pSession = m_pSessionPrototype->clone(std::move(socket), m_SSLContext);

@@ -9,38 +9,7 @@ const std::set<std::string> c_supportedContentTypes = {
 };
 
 
-void parseJSONBody(std::map<std::string, std::string> &map, const std::string body)
-{
-    // parse as json
-    JSON jBody = JSON::parse(body);
-    for (auto j : jBody.items())
-    {
-        JSON value = j.value();
-        std::string valStr;
-        if (value.is_string())
-        {
-            valStr = value;
-        }
-        else if (value.is_number_float())
-        {
-            valStr = std::to_string(value.get<double>());
-        }
-        else if (value.is_number_integer())
-        {
-            valStr = std::to_string(value.get<int>());
-        }
-        else if (value.is_boolean())
-        {
-            valStr = value.get<bool>() ? "true" : "false";
-        }
-
-        if (valStr.empty()) return;
-
-        map.insert_or_assign(j.key(), valStr);
-    }
-}
-
-void parse_x_www_form_urlencoded(std::map<std::string, std::string>& map, const std::string body)
+void parse_x_www_form_urlencoded(JSON& map, const std::string body)
 {
     // TODO : figure out how to parse this
     
@@ -62,17 +31,17 @@ void parse_x_www_form_urlencoded(std::map<std::string, std::string>& map, const 
         auto keyString = body.substr(keyStartIndex, keyLen);
         auto valString = body.substr(valStartIndex, valLen);
 
-        map.insert_or_assign(keyString, valString);
+        map[keyString] = valString;
 
         offset = valEndIndex + 1;
     }     
     while (offset > 0 && offset < body.length());
 }
 
-std::map<std::string, std::string> SessionBase::parseBody(std::string contentType, const std::string body)
+JSON SessionBase::parseBody(std::string contentType, const std::string body)
 {
     
-    std::map<std::string, std::string> bodyData;
+    JSON bodyData = JSON::object();
 
     if (c_supportedContentTypes.count(contentType) == 0)
     {
@@ -83,7 +52,7 @@ std::map<std::string, std::string> SessionBase::parseBody(std::string contentTyp
     if (contentType == "application/json")
     {
         // parse as json
-        parseJSONBody(bodyData, body);
+        bodyData = JSON::parse(body);
     }
     else if (contentType == "application/x-www-form-urlencoded")
     {
@@ -91,17 +60,17 @@ std::map<std::string, std::string> SessionBase::parseBody(std::string contentTyp
     }
     else
     {
-
+        // any other encodings go here
     }
 
     return bodyData;
 }
 
-std::map<std::string, std::string> SessionBase::extractQueries(beast::string_view target)
+JSON SessionBase::extractQueries(beast::string_view target)
 {
     // find '?' to identify a key and '=' to identify values, all deliminated by '&'
     // find first query key
-    std::map<std::string, std::string> queries{};
+    JSON queries = JSON::object();
 
     size_t searchOffset = 0;
     size_t keyIndex = 0;
@@ -134,7 +103,7 @@ std::map<std::string, std::string> SessionBase::extractQueries(beast::string_vie
         }
 
         keyIndex = nextKey;
-        queries.insert_or_assign(key, val);
+        queries[key] = val;
     }
     return queries;
 }

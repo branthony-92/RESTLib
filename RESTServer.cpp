@@ -104,7 +104,7 @@ void REST_Server::unregisterContext(TRESTCtxPtr pContext)
 	}
 }
 
-bool REST_Server::startServer_HTTP(std::string address, unsigned short port, RESTCtxList contexts)
+bool REST_Server::startServer_HTTP(std::string address, unsigned short port, RESTCtxList& contexts)
 {
 	std::string schema = "http";
 	SessionPtr pSessionPrototype = std::make_shared<GenericSessionHTTP>(contexts);
@@ -156,7 +156,7 @@ bool REST_Server::startServer_HTTP(std::string address, unsigned short port, RES
 	return true;
 }
 
-bool REST_Server::startServer_HTTPS(std::string address, unsigned short port, RESTCtxList contexts, SSLCtxInitHandler sslInitHandler)
+bool REST_Server::startServer_HTTPS(std::string address, unsigned short port, RESTCtxList& contexts, SSLCtxInitHandler sslInitHandler)
 {
 	std::string schema = "https";
 
@@ -216,14 +216,14 @@ bool REST_Server::startServer_HTTPS(std::string address, unsigned short port, RE
 	return true;
 }
 
-std::shared_ptr<REST_Server> REST_Server::make_server(unsigned int threadCount, std::string address, unsigned short port, RESTCtxList contexts)
+std::shared_ptr<REST_Server> REST_Server::make_server(unsigned int threadCount, std::string address, unsigned short port, RESTCtxList& contexts)
 {
 	auto pServer = std::make_shared<REST_Server>(threadCount);
 	pServer->startServer_HTTP(address, port, contexts);
 	return pServer;
 }
 
-std::shared_ptr<REST_Server> REST_Server::make_server(unsigned int threadCount, std::string address, unsigned short port, RESTCtxList contexts, SSLCtxInitHandler fHandler)
+std::shared_ptr<REST_Server> REST_Server::make_server(unsigned int threadCount, std::string address, unsigned short port, RESTCtxList& contexts, SSLCtxInitHandler fHandler)
 {
 	auto pServer = std::make_shared<REST_Server>(threadCount);
 	pServer->startServer_HTTPS(address, port, contexts, fHandler);

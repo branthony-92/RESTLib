@@ -22,8 +22,8 @@ public:
 	REST_Server(unsigned int threads = 1);
 	virtual ~REST_Server();
 
-	static std::shared_ptr<REST_Server> make_server(unsigned int threadCount, std::string address, unsigned short port, RESTCtxList contexts);
-	static std::shared_ptr<REST_Server> make_server(unsigned int threadCount, std::string address, unsigned short port, RESTCtxList contexts, SSLCtxInitHandler fHandler);
+	static std::shared_ptr<REST_Server> make_server(unsigned int threadCount, std::string address, unsigned short port, RESTCtxList& contexts);
+	static std::shared_ptr<REST_Server> make_server(unsigned int threadCount, std::string address, unsigned short port, RESTCtxList& contexts, SSLCtxInitHandler fHandler);
 
 	virtual bool reset();
 	virtual void shutdown();
@@ -39,8 +39,8 @@ public:
 	RESTCtxList getContexts() const { return m_serverContexts; }
 
 protected:
-	virtual bool startServer_HTTP(std::string address, unsigned short port, RESTCtxList contexts);
-	virtual bool startServer_HTTPS(std::string address, unsigned short port, RESTCtxList contexts, SSLCtxInitHandler fHandler);
+	virtual bool startServer_HTTP(std::string address, unsigned short port, RESTCtxList& contexts);
+	virtual bool startServer_HTTPS(std::string address, unsigned short port, RESTCtxList& contexts, SSLCtxInitHandler fHandler);
 
 	ListenerPtr  m_pListener;
 	SSLCtxPtr 	 m_pSSLContext;

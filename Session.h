@@ -60,26 +60,23 @@ public:
 
     void setClosed(bool closed) { m_closed = closed; }
 
-    static std::map<std::string, std::string> parseBody(std::string contentType, const std::string body);
-    static std::map<std::string, std::string> extractQueries(beast::string_view target);
+    static JSON parseBody(std::string contentType, const std::string body);
+    static JSON extractQueries(beast::string_view target);
     static std::string extractEndpoint(beast::string_view target);
 
 
-
-
 protected:
-
     template< class Body, class Allocator>
-    std::map<std::string, std::string> extractBody(http::request<Body, http::basic_fields<Allocator>> req)
+    JSON extractBody(http::request<Body, http::basic_fields<Allocator>> req)
     {
-        std::map<std::string, std::string> bodyData;
+        JSON bodyData = JSON::object();
 
         return bodyData;
     }
    
-    std::map<std::string, std::string> extractBody(http::request<http::string_body, http::basic_fields<std::allocator<char>>> req)
+    JSON extractBody(http::request<http::string_body, http::basic_fields<std::allocator<char>>> req)
     {
-        std::map<std::string, std::string> bodyData{};
+        JSON bodyData = JSON::object();
 
         auto& header = req.base();
 

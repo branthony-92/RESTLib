@@ -97,42 +97,47 @@ void GenericSessionHTTP::handleRequest(http::request<Body, http::basic_fields<Al
         // find the endpoint
 
         beast::string_view methodStr = req.method_string();
-        std::cout << "Request received: " << methodStr << " " << target << "\n";
 
         auto epString = extractEndpoint(target);
 
         // retrieve the JSON body from the request body if there is one
-        ParameterMap body(extractBody(req));
+        auto body(extractBody(req));
 
         // extract the queries
-        ParameterMap queries(extractQueries(target));
+        auto queries(extractQueries(target));
 
+        std::cout << "Request received: " << methodStr << " " << target << "\n";
+        
         // find the method and handle the request
         http::verb method = req.method();
         RequestData reqData = {epString, queries, body};
-        auto findCallback = [&method](TRESTCtxPtr pCtx, std::string& callbackID) -> RequestCallback* {
-            if (!pCtx) return nullptr;
+       
+        for (auto pCtx : m_serverContexts)
+        {
+            if (!pCtx) continue;
+            
+            RequestCallback* callback = nullptr;
+
             switch (method)
             {
                 case boost::beast::http::verb::delete_:
-                    return pCtx->retrieveCallback_DELETE(callbackID);
+                    callback = pCtx->retrieveCallback_DELETE(epString);
+                    break;
                 case boost::beast::http::verb::get:
-                    return pCtx->retrieveCallback_GET(callbackID);
+                    callback = pCtx->retrieveCallback_GET(epString);
+                    break;
                 case boost::beast::http::verb::head:
-                    return pCtx->retrieveCallback_HEAD(callbackID);
+                    callback = pCtx->retrieveCallback_HEAD(epString);
+                    break;
                 case boost::beast::http::verb::post:
-                    return pCtx->retrieveCallback_POST(callbackID);
+                    callback = pCtx->retrieveCallback_POST(epString);
+                    break;
                 case boost::beast::http::verb::put:
-                    return pCtx->retrieveCallback_PUT(callbackID);
+                    callback = pCtx->retrieveCallback_PUT(epString);
+                    break;
                 default:
                     break;
             }
-            return nullptr;
-        };
-
-        for (auto& pCtx : m_serverContexts)
-        {
-            auto callback = findCallback(pCtx, epString);
             if (callback)
             {
                 pResponse = (*callback)(reqData);
