@@ -104,15 +104,21 @@ void REST_Server::unregisterContext(TRESTCtxPtr pContext)
 	}
 }
 
-bool REST_Server::startServer_HTTP(std::string address, unsigned short port, RESTCtxList& contexts)
+void REST_Server::setServerDomain(std::string address, unsigned short port)
 {
-	std::string schema = "http";
-	SessionPtr pSessionPrototype = std::make_shared<GenericSessionHTTP>(contexts);
+	auto pURI = std::make_shared<URIInfoBody>();
+	pURI->setAddress(address);
+	pURI->setPort(port);
+	m_pInfo->setURI(pURI);
+}
 
-	for (auto pContext : contexts)
-	{
-		registerContext(pContext);
-	}
+bool REST_Server::startServer_HTTP()
+{
+	auto address = m_pInfo->getURI()->getAddress();
+	auto port    = m_pInfo->getURI()->getPort();
+
+	std::string schema = "http";
+	SessionPtr pSessionPrototype = std::make_shared<GenericSessionHTTP>(m_serverContexts);
 
 	boost::system::error_code ec;
 	auto ipAddr = boost::asio::ip::address::from_string( address, ec );
@@ -126,7 +132,7 @@ bool REST_Server::startServer_HTTP(std::string address, unsigned short port, RES
 	m_pListener = std::make_shared<Listener>(
 		*m_pIOContext,
 		*m_pSSLContext,
-		tcp::endpoint{ipAddr, port},
+		tcp::endpoint{ipAddr, static_cast<unsigned short>(port)},
 		pSessionPrototype);
 
 	m_pListener->run();
@@ -148,7 +154,7 @@ bool REST_Server::startServer_HTTP(std::string address, unsigned short port, RES
 	m_pInfo->setURLString(uri.str());
 
 	std::cout << "Server Listening: " << uri.str() << "\n";
-	for (auto pContext : contexts)
+	for (auto pContext : m_serverContexts)
 	{
 		// call the context server startup callbacks
 		pContext->onServerStart();
@@ -156,16 +162,13 @@ bool REST_Server::startServer_HTTP(std::string address, unsigned short port, RES
 	return true;
 }
 
-bool REST_Server::startServer_HTTPS(std::string address, unsigned short port, RESTCtxList& contexts, SSLCtxInitHandler sslInitHandler)
+bool REST_Server::startServer_HTTPS(SSLCtxInitHandler sslInitHandler)
 {
+	auto address = m_pInfo->getURI()->getAddress();
+	auto port    = m_pInfo->getURI()->getPort();
+
 	std::string schema = "https";
-
-	SessionPtr pSessionPrototype = std::make_shared<GenericSessionHTTPS>(contexts);
-
-	for (auto pContext : contexts)
-	{
-		registerContext(pContext);
-	}
+	SessionPtr pSessionPrototype = std::make_shared<GenericSessionHTTPS>(m_serverContexts);
 
 	// server-owner defined SSL certificate initialization
 	if (pSessionPrototype->m_useSSLTLS)
@@ -186,7 +189,7 @@ bool REST_Server::startServer_HTTPS(std::string address, unsigned short port, RE
 	m_pListener = std::make_shared<Listener>(
 		*m_pIOContext,
 		*m_pSSLContext,
-		tcp::endpoint{ipAddr, port},
+		tcp::endpoint{ipAddr, static_cast<unsigned short>(port)},
 		pSessionPrototype);
 
 	m_pListener->run();
@@ -208,7 +211,7 @@ bool REST_Server::startServer_HTTPS(std::string address, unsigned short port, RE
 	m_pInfo->setURLString(uri.str());
 
 	std::cout << "Server Listening: " << uri.str() << "\n";
-	for (auto pContext : contexts)
+	for (auto pContext : m_serverContexts)
 	{
 		// call the context server startup callbacks
 		pContext->onServerStart();
@@ -216,16 +219,9 @@ bool REST_Server::startServer_HTTPS(std::string address, unsigned short port, RE
 	return true;
 }
 
-std::shared_ptr<REST_Server> REST_Server::make_server(unsigned int threadCount, std::string address, unsigned short port, RESTCtxList& contexts)
+std::shared_ptr<REST_Server> REST_Server::make_server(unsigned int threadCount, std::string address, unsigned short port)
 {
 	auto pServer = std::make_shared<REST_Server>(threadCount);
-	pServer->startServer_HTTP(address, port, contexts);
-	return pServer;
-}
-
-std::shared_ptr<REST_Server> REST_Server::make_server(unsigned int threadCount, std::string address, unsigned short port, RESTCtxList& contexts, SSLCtxInitHandler fHandler)
-{
-	auto pServer = std::make_shared<REST_Server>(threadCount);
-	pServer->startServer_HTTPS(address, port, contexts, fHandler);
+	pServer->setServerDomain(address, port);
 	return pServer;
 }
