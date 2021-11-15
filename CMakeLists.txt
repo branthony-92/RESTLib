@@ -32,5 +32,5 @@ add_library(restlib ${SOURCES})
 
 target_link_libraries(restlib -lboost_thread-static -lboost_system-static -lcrypto -lz -lpthread -lssl)
 
-install(FILES restlib DESTINATION /usr/local/lib/)
+install(TARGETS LIBRARY DESTINATION "/usr/local/lib/")
 install(FILES ${ROOT_HEADERS} ${ROOT_SOURCES} DESTINATION /usr/local/include/restlib/include)
