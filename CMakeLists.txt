@@ -28,9 +28,9 @@ link_directories("/usr/lib/x86_64-linux-gnu/")
 link_directories("/usr/local/lib/")
 
 set(SOURCES ${ROOT_HEADERS} ${ROOT_SOURCES})
-add_library(restlib ${SOURCES})
+add_library(restlib STATIC ${SOURCES})
 
 target_link_libraries(restlib -lboost_thread-static -lboost_system-static -lcrypto -lz -lpthread -lssl)
 
-install(TARGETS LIBRARY DESTINATION "/usr/local/lib/")
+install(TARGETS restlib ARCHIVE DESTINATION "/usr/local/lib/")
 install(FILES ${ROOT_HEADERS} ${ROOT_SOURCES} DESTINATION /usr/local/include/restlib/include)
